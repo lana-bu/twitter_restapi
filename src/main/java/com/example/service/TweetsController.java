@@ -19,10 +19,14 @@ public class TweetsController {
 	@Autowired
 	private FileService fileReader;	
 	
+	private ObjectMapper mapper = new ObjectMapper();
+	
 	@RequestMapping(value="/tweets", method=RequestMethod.GET) // or just print as string
 	public String getAllTweets() {
 		try {
-			return fileReader.readFileFromResources("favs.json");
+			String tweetsArchive = fileReader.readFileFromResources("favs.json");
+			JsonNode root = mapper.readTree(tweetsArchive);
+			return root.toString();
 		} catch (IOException e) {
 			return "Error occured while reading the file.";
 		}
