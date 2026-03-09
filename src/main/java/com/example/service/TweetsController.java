@@ -25,8 +25,27 @@ public class TweetsController {
 	public String getAllTweets() {
 		try {
 			String tweetsArchive = fileReader.readFileFromResources("favs.json");
-			JsonNode root = mapper.readTree(tweetsArchive);
-			return root.toString();
+			JsonNode tweets = mapper.readTree(tweetsArchive);
+			
+			String creation_time = ""; // must initialize with value or else error is thrown
+			String tweet_id = "";
+			String content = "";
+			
+			StringBuilder tweetData = new StringBuilder();
+			
+			for (JsonNode tweet : tweets) {
+				tweet_id = tweet.get("id_str").asText(); // asText is deprecated, but works in this context to remove double quotes
+				tweetData.append(tweet_id).append("\n");
+				
+				creation_time = tweet.get("created_at").asText();
+				tweetData.append(creation_time).append("\n");
+				
+				content = tweet.get("text").asText();
+				tweetData.append(content).append("\n");
+			}
+			
+			// return tweets.toString();
+			return tweetData.toString().trim();
 		} catch (IOException e) {
 			return "Error occured while reading the file.";
 		}
