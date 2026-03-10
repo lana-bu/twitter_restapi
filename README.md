@@ -1,7 +1,11 @@
 # twitter_restapi
 This project is for my Assignment #2 in CIS 376 (Software Engineering II) at UM-Dearborn. It is a RESTful API that uses an archive of tweets (provided by my professor in a JSON file) to collect different data fields from and output to the user in a web browser. I created it to become more familiar with creating REST APIs using the SpringBoot framework and testing them with Postman.
 ## Run Instructions
-(run instructions)
+### Steps
+1. ...
+2. ...
+### Using A Different Tweet Archive
+...
 ## Sources
 ### Code Help
 - Reading a file and converting to string: https://www.geeksforgeeks.org/advance-java/read-file-from-resources-folder-in-spring-boot/
