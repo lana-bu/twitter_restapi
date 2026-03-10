@@ -154,15 +154,32 @@ public class TweetsController {
 				users.add(user);
 			}
 			
-			List<String> screenNames = new ArrayList<String>(); // to hold screen names of all users
+			JsonNode matchingUser = mapper.createObjectNode(); // initialize JsonNode for the matching user
+			boolean matchFound = false;
 			
-			for (int i = 0; i < users.size(); i++) { // collect screen names
-				String screenName = users.get(i).get("screen_name").toString(); // grab user's screen name
-				
-				screenNames.add(screenName); // dynamically add Long tweetID to ArrayList
+			for (int i = 0; i < users.size(); i++) { // find matching user
+				if (users.get(i).get("screen_name").toString().equals("\"" + screen_name + "\"")) { // need to add quotes to match toString result
+					matchingUser = users.get(i);
+					matchFound = true;
+					break;
+				}					
 			}
 			
-			return tweets.toString();
+			if (matchFound) {
+				String pattern = "{ \"Location\":%s, \"Description\":%s, \"Followers_Count\":%s, \"Friends_Count\":%s}";
+				String userData = "";
+				
+				String location = matchingUser.get("location").toString();				
+				String description = matchingUser.get("description").toString();
+				String followersCount = matchingUser.get("followers_count").toString();
+				String friendsCount = matchingUser.get("friends_count").toString();
+								
+				userData = String.format(pattern, location, description, followersCount, friendsCount);
+				
+				return userData;
+			} else { // throw error
+				return "Error: User with screen name of " + screen_name + " does not exist.";
+			}	
 		} catch (IOException e) {
 			return "Error occured while reading the file.";
 		}
