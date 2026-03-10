@@ -50,4 +50,19 @@ public class TweetsController {
 			return "Error occured while reading the file.";
 		}
 	}
+	
+	@RequestMapping(value="/tweets/links", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
+	public String getLinksFromTweets() {
+		
+	}
+
+	@RequestMapping(value="/tweets/{id}", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
+	public String getTweetDetails() {
+		
+	}
+
+	@RequestMapping(value="/users/{screen_name}", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
+	public String getUserDetails() {
+		
+	}
 }
