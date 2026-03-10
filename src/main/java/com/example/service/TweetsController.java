@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 @RestController
 public class TweetsController {
@@ -57,8 +58,14 @@ public class TweetsController {
 			String tweetsArchive = fileReader.readFileFromResources("favs.json");
 			JsonNode tweets = mapper.readTree(tweetsArchive);
 			
+			String urlRegex = "^https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)$";
+			Pattern urlPatter = Pattern.compile(urlRegex);
+			
 			String tweetId = ""; // must initialize with value or else error is thrown
-			String links = "";
+			String content = "";
+			
+			String[] linksArr = {"test1", "test2"};
+			StringBuilder links = new StringBuilder();
 			
 			String pattern = "{ \"Tweet_ID\":%s, \"Links\":%s}";
 			String tweetData = "";
@@ -66,10 +73,19 @@ public class TweetsController {
 			tweetsJson.append("["); // to group JSON array
 			
 			for (JsonNode tweet : tweets) {
-				tweetId = tweet.get("id_str").toString();				
+				tweetId = tweet.get("id_str").toString();	
+				content = tweet.get("text").toString();
 				
-				tweetData = String.format(pattern, tweetId, links);
+				for (int i = 0; i < linksArr.length; i++ ) {
+					links.append(linksArr[i]);
+					if (i < linksArr.length - 1) {
+						links.append(", ");
+					}
+				}
+				
+				tweetData = String.format(pattern, tweetId, links.toString());
 				tweetsJson.append(tweetData).append(", "); // to mark end of JSON array object
+				links.setLength(0); // reset string builder
 			}
 			
 			tweetsJson.replace(tweetsJson.length() - 2, tweetsJson.length(), ""); // delete last two characters ", " at the end
