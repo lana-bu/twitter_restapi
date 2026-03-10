@@ -34,6 +34,7 @@ public class TweetsController {
 			String pattern = "{ \"Tweet_ID\":%s, \"Creation_Time\":%s, \"Tweet_Content\":%s}";
 			String tweetData = "";
 			StringBuilder tweetsJson = new StringBuilder();
+			
 			tweetsJson.append("["); // to group JSON array
 			
 			for (JsonNode tweet : tweets) {
@@ -60,7 +61,6 @@ public class TweetsController {
 			String tweetsArchive = fileReader.readFileFromResources("favs.json");
 			JsonNode tweets = mapper.readTree(tweetsArchive);
 			
-			// need to fix regex
 			String urlRegex = "https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)";
 			Pattern urlPattern = Pattern.compile(urlRegex);
 			
@@ -70,20 +70,26 @@ public class TweetsController {
 			String pattern = "{ \"Tweet_ID\":%s, \"Links\":%s}";
 			String tweetData = "";
 			StringBuilder tweetsJson = new StringBuilder();
+			
 			tweetsJson.append("["); // to group JSON array
 			
 			for (JsonNode tweet : tweets) {
-				tweetId = tweet.get("id_str").toString();	
+				tweetId = tweet.get("id_str").toString();
 				content = tweet.get("text").toString();
 				
 				String [] linksArr = urlPattern.matcher(content).results().map(MatchResult::group).toArray(String[]::new);
 				
+				for (int i = 0; i < linksArr.length; i++) {
+			        linksArr[i] = "\"" + linksArr[i] + "\""; // add quotes around each link for JSON formatting
+			    }
+								
 				tweetData = String.format(pattern, tweetId, Arrays.toString(linksArr));
 				tweetsJson.append(tweetData).append(", "); // to mark end of JSON array object
 			}
 			
 			tweetsJson.replace(tweetsJson.length() - 2, tweetsJson.length(), ""); // delete last two characters ", " at the end
 			tweetsJson.append("]"); // close JSON array group
+			
 			
 			return tweetsJson.toString();
 		} catch (IOException e) {
