@@ -1,8 +1,6 @@
 package com.example.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -10,54 +8,46 @@ import org.springframework.web.bind.annotation.RestController;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
-import java.io.File;
 import java.io.IOException;
 
 @RestController
 public class TweetsController {
 	
 	@Autowired
-	private FileService fileReader;	
+	private FileService fileReader;	// to read favs.json
 	
-	private ObjectMapper mapper = new ObjectMapper();
+	private ObjectMapper mapper = new ObjectMapper(); // creating once as class attribute because ObjectMapper is expensive/heavy
 	
-	@RequestMapping(value="/tweets", method=RequestMethod.GET) // or just print as string
+	@RequestMapping(value="/tweets", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
 	public String getAllTweets() {
 		try {
 			String tweetsArchive = fileReader.readFileFromResources("favs.json");
 			JsonNode tweets = mapper.readTree(tweetsArchive);
 			
-			String creation_time = ""; // must initialize with value or else error is thrown
-			String tweet_id = "";
+			String creationTime = ""; // must initialize with value or else error is thrown
+			String tweetId = "";
 			String content = "";
 			
-			StringBuilder tweetData = new StringBuilder();
+			String pattern = "{ \"Tweet_ID\":%s, \"Creation_Time\":%s, \"Tweet_Content\":%s}";
+			String tweetData = "";
+			StringBuilder tweetsJson = new StringBuilder();
+			tweetsJson.append("["); // to group JSON array
 			
 			for (JsonNode tweet : tweets) {
-				tweet_id = tweet.get("id_str").asText(); // asText is deprecated, but works in this context to remove double quotes
-				tweetData.append(tweet_id).append("\n");
+				tweetId = tweet.get("id_str").toString(); // asText is deprecated, but works in this context to remove double quotes				
+				creationTime = tweet.get("created_at").toString();				
+				content = tweet.get("text").toString();
 				
-				creation_time = tweet.get("created_at").asText();
-				tweetData.append(creation_time).append("\n");
-				
-				content = tweet.get("text").asText();
-				tweetData.append(content).append("\n");
+				tweetData = String.format(pattern, tweetId, creationTime, content);
+				tweetsJson.append(tweetData).append(", "); // to mark end of JSON array object
 			}
 			
-			// return tweets.toString();
-			return tweetData.toString().trim();
+			tweetsJson.replace(tweetsJson.length() - 2, tweetsJson.length(), ""); // delete last two characters ", " at the end
+			tweetsJson.append("]"); // close JSON array group
+			
+			return tweetsJson.toString();
 		} catch (IOException e) {
 			return "Error occured while reading the file.";
 		}
-		
-		
-
-//		for (JsonNode tweet : root) { 
-//			// get tweet data, maybe as string formatted together, then store in array, then print out array
-//			String creation_time = root.get("created_at");
-//			String id = ;
-//			String text = ;
-//		}
-
 	}
 }
