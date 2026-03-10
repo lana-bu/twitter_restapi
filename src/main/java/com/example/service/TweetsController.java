@@ -2,6 +2,7 @@ package com.example.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -9,7 +10,9 @@ import org.springframework.web.bind.annotation.RestController;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
@@ -90,7 +93,6 @@ public class TweetsController {
 			tweetsJson.replace(tweetsJson.length() - 2, tweetsJson.length(), ""); // delete last two characters ", " at the end
 			tweetsJson.append("]"); // close JSON array group
 			
-			
 			return tweetsJson.toString();
 		} catch (IOException e) {
 			return "Error occured while reading the file.";
@@ -98,19 +100,36 @@ public class TweetsController {
 	}
 
 	@RequestMapping(value="/tweets/{id}", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
-	public String getTweetDetails() {
+	public String getTweetDetails(@PathVariable Long id) {
 		try {
 			String tweetsArchive = fileReader.readFileFromResources("favs.json");
 			JsonNode tweets = mapper.readTree(tweetsArchive);
 			
-			return tweets.toString();
+			List<Long> tweetIds = new ArrayList<Long>();
+			String tweetIdString = "";
+			Long tweetId = 0L;
+			
+			for (JsonNode tweet : tweets) { // collect tweet IDs
+				tweetIdString = tweet.get("id").toString();
+				tweetId = Long.parseLong(tweetIdString);
+				
+				tweetIds.add(tweetId);
+			}
+			
+			if (tweetIds.contains(id)) {
+				return tweets.toString();
+
+			} else {
+				return "Error: Tweet with ID of " + Long.toString(id) + " does not exist.";
+			}
+			
 		} catch (IOException e) {
 			return "Error occured while reading the file.";
 		}
 	}
 
 	@RequestMapping(value="/users/{screen_name}", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
-	public String getUserDetails() {
+	public String getUserDetails(@PathVariable String screen_name) {
 		try {
 			String tweetsArchive = fileReader.readFileFromResources("favs.json");
 			JsonNode tweets = mapper.readTree(tweetsArchive);
