@@ -24,8 +24,8 @@ public class TweetsController {
 			String tweetsArchive = fileReader.readFileFromResources("favs.json");
 			JsonNode tweets = mapper.readTree(tweetsArchive);
 			
-			String creationTime = ""; // must initialize with value or else error is thrown
-			String tweetId = "";
+			String tweetId = ""; // must initialize with value or else error is thrown
+			String creationTime = "";
 			String content = "";
 			
 			String pattern = "{ \"Tweet_ID\":%s, \"Creation_Time\":%s, \"Tweet_Content\":%s}";
@@ -34,7 +34,7 @@ public class TweetsController {
 			tweetsJson.append("["); // to group JSON array
 			
 			for (JsonNode tweet : tweets) {
-				tweetId = tweet.get("id_str").toString(); // asText is deprecated, but works in this context to remove double quotes				
+				tweetId = tweet.get("id_str").toString(); 				
 				creationTime = tweet.get("created_at").toString();				
 				content = tweet.get("text").toString();
 				
@@ -53,16 +53,55 @@ public class TweetsController {
 	
 	@RequestMapping(value="/tweets/links", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
 	public String getLinksFromTweets() {
-		
+		try {
+			String tweetsArchive = fileReader.readFileFromResources("favs.json");
+			JsonNode tweets = mapper.readTree(tweetsArchive);
+			
+			String tweetId = ""; // must initialize with value or else error is thrown
+			String links = "";
+			
+			String pattern = "{ \"Tweet_ID\":%s, \"Links\":%s}";
+			String tweetData = "";
+			StringBuilder tweetsJson = new StringBuilder();
+			tweetsJson.append("["); // to group JSON array
+			
+			for (JsonNode tweet : tweets) {
+				tweetId = tweet.get("id_str").toString();				
+				
+				tweetData = String.format(pattern, tweetId, links);
+				tweetsJson.append(tweetData).append(", "); // to mark end of JSON array object
+			}
+			
+			tweetsJson.replace(tweetsJson.length() - 2, tweetsJson.length(), ""); // delete last two characters ", " at the end
+			tweetsJson.append("]"); // close JSON array group
+			
+			return tweetsJson.toString();
+		} catch (IOException e) {
+			return "Error occured while reading the file.";
+		}
 	}
 
 	@RequestMapping(value="/tweets/{id}", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
 	public String getTweetDetails() {
-		
+		try {
+			String tweetsArchive = fileReader.readFileFromResources("favs.json");
+			JsonNode tweets = mapper.readTree(tweetsArchive);
+			
+			return tweets.toString();
+		} catch (IOException e) {
+			return "Error occured while reading the file.";
+		}
 	}
 
 	@RequestMapping(value="/users/{screen_name}", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
 	public String getUserDetails() {
-		
+		try {
+			String tweetsArchive = fileReader.readFileFromResources("favs.json");
+			JsonNode tweets = mapper.readTree(tweetsArchive);
+			
+			return tweets.toString();
+		} catch (IOException e) {
+			return "Error occured while reading the file.";
+		}
 	}
 }
