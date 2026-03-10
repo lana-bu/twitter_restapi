@@ -26,29 +26,26 @@ public class TweetsController {
 	
 	private ObjectMapper mapper = new ObjectMapper(); // creating once as class attribute because ObjectMapper is expensive/heavy
 	
+	// get id, creation time, and content of each tweet
 	@RequestMapping(value="/tweets", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
 	public String getAllTweets() {
 		try {
 			String tweetsArchive = fileReader.readFileFromResources("favs.json");
 			JsonNode tweets = mapper.readTree(tweetsArchive);
-			
-			String tweetId = ""; // must initialize with value or else error is thrown
-			String creationTime = "";
-			String content = "";
-			
+						
 			String pattern = "{ \"Tweet_ID\":%s, \"Creation_Time\":%s, \"Tweet_Content\":%s}";
-			String tweetData = "";
+			
 			StringBuilder tweetsJson = new StringBuilder();
 			
 			tweetsJson.append("["); // to group JSON array
 			
-			for (JsonNode tweet : tweets) {
-				tweetId = tweet.get("id_str").toString(); 				
-				creationTime = tweet.get("created_at").toString();				
-				content = tweet.get("text").toString();
+			for (JsonNode tweet : tweets) { // create JSON string for each tweet and append to larger JSON string
+				String tweetId = tweet.get("id_str").toString(); 				
+				String creationTime = tweet.get("created_at").toString();				
+				String content = tweet.get("text").toString();
 				
-				tweetData = String.format(pattern, tweetId, creationTime, content);
-				tweetsJson.append(tweetData).append(", "); // to mark end of JSON array object
+				String tweetData = String.format(pattern, tweetId, creationTime, content);
+				tweetsJson.append(tweetData).append(", "); // append tweet JSON string and comma to mark end of JSON array object
 			}
 			
 			tweetsJson.replace(tweetsJson.length() - 2, tweetsJson.length(), ""); // delete last two characters ", " at the end
@@ -60,6 +57,7 @@ public class TweetsController {
 		}
 	}
 	
+	// get id and all of the links found in the content for each tweet
 	@RequestMapping(value="/tweets/links", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
 	public String getLinksFromTweets() {
 		try {
@@ -68,28 +66,25 @@ public class TweetsController {
 			
 			String urlRegex = "https?:\\/\\/(?:www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b(?:[-a-zA-Z0-9()@:%_\\+.~#?&\\/=]*)";
 			Pattern urlPattern = Pattern.compile(urlRegex);
-			
-			String tweetId = ""; // must initialize with value or else error is thrown
-			String content = "";
-			
+						
 			String pattern = "{ \"Tweet_ID\":%s, \"Links\":%s}";
-			String tweetData = "";
+			
 			StringBuilder tweetsJson = new StringBuilder();
 			
 			tweetsJson.append("["); // to group JSON array
 			
-			for (JsonNode tweet : tweets) {
-				tweetId = tweet.get("id_str").toString();
-				content = tweet.get("text").toString();
+			for (JsonNode tweet : tweets) { // create JSON string for each tweet and append to larger JSON string
+				String tweetId = tweet.get("id_str").toString();
+				String content = tweet.get("text").toString();
 				
-				String [] linksArr = urlPattern.matcher(content).results().map(MatchResult::group).toArray(String[]::new);
+				String [] linksArr = urlPattern.matcher(content).results().map(MatchResult::group).toArray(String[]::new); // array of links found in content
 				
 				for (int i = 0; i < linksArr.length; i++) {
 			        linksArr[i] = "\"" + linksArr[i] + "\""; // add quotes around each link for JSON formatting
 			    }
 								
-				tweetData = String.format(pattern, tweetId, Arrays.toString(linksArr));
-				tweetsJson.append(tweetData).append(", "); // to mark end of JSON array object
+				String tweetData = String.format(pattern, tweetId, Arrays.toString(linksArr));
+				tweetsJson.append(tweetData).append(", "); // append tweet JSON string and comma to mark end of JSON array object
 			}
 			
 			tweetsJson.replace(tweetsJson.length() - 2, tweetsJson.length(), ""); // delete last two characters ", " at the end
@@ -101,6 +96,7 @@ public class TweetsController {
 		}
 	}
 
+	// get creation time, content, and user's screen name for a specific tweet
 	@RequestMapping(value="/tweets/{id}", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
 	public String getTweetDetails(@PathVariable Long id) { // pass in ID provided as by user in path
 		try {
@@ -118,9 +114,8 @@ public class TweetsController {
 				}					
 			}
 			
-			if (matchFound) {
+			if (matchFound) { // create JSON string of relevant tweet data
 				String pattern = "{ \"Creation_Time\":%s, \"Tweet_Content\":%s, \"User_Screen_Name\":%s}";
-				String tweetData = "";
 				
 				String creationTime = matchingTweet.get("created_at").toString();				
 				String content = matchingTweet.get("text").toString();
@@ -129,7 +124,7 @@ public class TweetsController {
 						
 				String screenName = user.get("screen_name").toString();
 				
-				tweetData = String.format(pattern, creationTime, content, screenName);
+				String tweetData = String.format(pattern, creationTime, content, screenName);
 				
 				return tweetData;
 			} else { // throw error
@@ -140,6 +135,7 @@ public class TweetsController {
 		}
 	}
 
+	// get location, description, followers count, and friends count for a specific user
 	@RequestMapping(value="/users/{screen_name}", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
 	public String getUserDetails(@PathVariable String screen_name) {
 		try {
@@ -148,7 +144,7 @@ public class TweetsController {
 			
 			List<JsonNode> users = new ArrayList<JsonNode>(); // initialize JsonNode list for users
 
-			for (JsonNode tweet : tweets) { // collect users
+			for (JsonNode tweet : tweets) { // collect users in ArrayList
 				JsonNode user = tweet.get("user");
 				
 				users.add(user);
@@ -165,16 +161,15 @@ public class TweetsController {
 				}					
 			}
 			
-			if (matchFound) {
+			if (matchFound) { // create JSON string of relevant user data
 				String pattern = "{ \"Location\":%s, \"Description\":%s, \"Followers_Count\":%s, \"Friends_Count\":%s}";
-				String userData = "";
 				
 				String location = matchingUser.get("location").toString();				
 				String description = matchingUser.get("description").toString();
 				String followersCount = matchingUser.get("followers_count").toString();
 				String friendsCount = matchingUser.get("friends_count").toString();
 								
-				userData = String.format(pattern, location, description, followersCount, friendsCount);
+				String userData = String.format(pattern, location, description, followersCount, friendsCount);
 				
 				return userData;
 			} else { // throw error
