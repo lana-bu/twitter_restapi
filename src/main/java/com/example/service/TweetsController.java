@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -100,29 +102,47 @@ public class TweetsController {
 	}
 
 	@RequestMapping(value="/tweets/{id}", method=RequestMethod.GET, produces=MediaType.APPLICATION_JSON_VALUE)
-	public String getTweetDetails(@PathVariable Long id) {
+	public String getTweetDetails(@PathVariable Long id) { // pass in ID provided as by user in path
 		try {
 			String tweetsArchive = fileReader.readFileFromResources("favs.json");
 			JsonNode tweets = mapper.readTree(tweetsArchive);
 			
-			List<Long> tweetIds = new ArrayList<Long>();
+			List<Long> tweetIds = new ArrayList<Long>(); // to hold existing tweet IDs from sample data
 			String tweetIdString = "";
 			Long tweetId = 0L;
 			
 			for (JsonNode tweet : tweets) { // collect tweet IDs
-				tweetIdString = tweet.get("id").toString();
-				tweetId = Long.parseLong(tweetIdString);
+				tweetIdString = tweet.get("id").toString(); // grab tweet ID as String
+				tweetId = Long.parseLong(tweetIdString); // transform String into Long
 				
-				tweetIds.add(tweetId);
+				tweetIds.add(tweetId); // dynamically add Long tweetID to ArrayList
 			}
 			
-			if (tweetIds.contains(id)) {
-				return tweets.toString();
-
-			} else {
+			if (tweetIds.contains(id)) { // check if ID in path matches ID of an existing tweet
+				JsonNode matchingTweet = mapper.createObjectNode(); // initialize JsonNode for the matching tweet
+				String pattern = "{ \"Creation_Time\":%s, \"Tweet_Content\":%s, \"User_Screen_Name\":%s}";
+				String tweetData = "";
+				
+				for (JsonNode tweet : tweets) { // find matching tweet
+					if (tweet.get("id").toString().equals(Long.toString(id))) {
+						matchingTweet = tweet;
+						break;
+					}					
+				}
+				
+				String creationTime = matchingTweet.get("created_at").toString();				
+				String content = matchingTweet.get("text").toString();
+				
+				JsonNode user = matchingTweet.get("user"); // grab JSON object that is value of key user
+						
+				String screenName = user.get("screen_name").toString();
+				
+				tweetData = String.format(pattern, creationTime, content, screenName);
+								
+				return tweetData.toString();
+			} else { // throw error
 				return "Error: Tweet with ID of " + Long.toString(id) + " does not exist.";
-			}
-			
+			}			
 		} catch (IOException e) {
 			return "Error occured while reading the file.";
 		}
