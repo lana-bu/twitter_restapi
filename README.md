@@ -11,3 +11,7 @@ This project is for my Assignment #2 in CIS 376 (Software Engineering II) at UM-
 - Removing ending characters from a String using replace(): https://www.baeldung.com/java-remove-last-character-stringbuilder
 - Finding links in a String with regex: https://uibakery.io/regex-library/url-regex-java
 - Appending double quotes to Strings in array: https://stackoverflow.com/questions/18227938/java-append-quotes-to-strings-in-an-array-and-join-strings-in-an-array
+- Using path variables: https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-requestmapping.html
+- Converting String to Long: https://stackoverflow.com/questions/7693324/how-to-convert-string-to-long-in-java
+- Adding elements to dynamic ArrayList: https://www.geeksforgeeks.org/java/how-to-add-an-element-to-an-array-in-java/
+- Check if an ArrayList contains a value: https://stackoverflow.com/questions/4404084/check-if-a-value-exists-in-arraylist
