@@ -107,28 +107,20 @@ public class TweetsController {
 			String tweetsArchive = fileReader.readFileFromResources("favs.json");
 			JsonNode tweets = mapper.readTree(tweetsArchive);
 			
-			List<Long> tweetIds = new ArrayList<Long>(); // to hold existing tweet IDs from sample data
-			String tweetIdString = "";
-			Long tweetId = 0L;
+			JsonNode matchingTweet = mapper.createObjectNode(); // initialize JsonNode for the matching tweet
+			boolean matchFound = false;
 			
-			for (JsonNode tweet : tweets) { // collect tweet IDs
-				tweetIdString = tweet.get("id").toString(); // grab tweet ID as String
-				tweetId = Long.parseLong(tweetIdString); // transform String into Long
-				
-				tweetIds.add(tweetId); // dynamically add Long tweetID to ArrayList
+			for (JsonNode tweet : tweets) { // find matching tweet
+				if (tweet.get("id").toString().equals(Long.toString(id))) {
+					matchingTweet = tweet;
+					matchFound = true;
+					break;
+				}					
 			}
 			
-			if (tweetIds.contains(id)) { // check if ID in path matches ID of an existing tweet
-				JsonNode matchingTweet = mapper.createObjectNode(); // initialize JsonNode for the matching tweet
+			if (matchFound) {
 				String pattern = "{ \"Creation_Time\":%s, \"Tweet_Content\":%s, \"User_Screen_Name\":%s}";
 				String tweetData = "";
-				
-				for (JsonNode tweet : tweets) { // find matching tweet
-					if (tweet.get("id").toString().equals(Long.toString(id))) {
-						matchingTweet = tweet;
-						break;
-					}					
-				}
 				
 				String creationTime = matchingTweet.get("created_at").toString();				
 				String content = matchingTweet.get("text").toString();
@@ -138,11 +130,11 @@ public class TweetsController {
 				String screenName = user.get("screen_name").toString();
 				
 				tweetData = String.format(pattern, creationTime, content, screenName);
-								
-				return tweetData.toString();
+				
+				return tweetData;
 			} else { // throw error
 				return "Error: Tweet with ID of " + Long.toString(id) + " does not exist.";
-			}			
+			}		
 		} catch (IOException e) {
 			return "Error occured while reading the file.";
 		}
@@ -153,6 +145,22 @@ public class TweetsController {
 		try {
 			String tweetsArchive = fileReader.readFileFromResources("favs.json");
 			JsonNode tweets = mapper.readTree(tweetsArchive);
+			
+			List<JsonNode> users = new ArrayList<JsonNode>(); // initialize JsonNode list for users
+
+			for (JsonNode tweet : tweets) { // collect users
+				JsonNode user = tweet.get("user");
+				
+				users.add(user);
+			}
+			
+			List<String> screenNames = new ArrayList<String>(); // to hold screen names of all users
+			
+			for (int i = 0; i < users.size(); i++) { // collect screen names
+				String screenName = users.get(i).get("screen_name").toString(); // grab user's screen name
+				
+				screenNames.add(screenName); // dynamically add Long tweetID to ArrayList
+			}
 			
 			return tweets.toString();
 		} catch (IOException e) {
